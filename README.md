@@ -1,70 +1,199 @@
-Yii PHP Framework Version 2
-===========================
+Codeception Extension for Yii 2
+===============================
 
-Thank you for choosing Yii 2 - a modern PHP framework designed for professional Web development.
+This extension provides [Codeception](http://codeception.com/) integration for the Yii Framework 2.0.
 
-Yii 2 is a complete rewrite of its previous version Yii 1.1 which is one of the most popular PHP frameworks.
-Yii 2 inherits the main spirit behind Yii for being simple, fast and highly extensible.
-Yii 2 requires PHP 5.4 and embraces best practices and protocols found in modern Web application development.
+It provides classes that help with testing with codeception:
 
-
-**Yii 2 is not ready for production use yet.** We may make significant changes without prior notices.
-We expect to make the first stable release of Yii 2 in early 2014.
-
-If you mainly want to learn Yii with no real project development requirement, we highly recommend
-you start with Yii 2 as it will be our main focus for the next few years.
-
-If you have a real project with tight schedule, you should stick to [Yii 1.1](https://github.com/yiisoft/yii)
-which is the latest stable release of Yii.
+- a base class for unit-tests: `yii\codeception\TestCase`;
+- a base class for codeception page-objects: `yii\codeception\BasePage`.
 
 
-[![Latest Stable Version](https://poser.pugx.org/yiisoft/yii2/v/stable.png)](https://packagist.org/packages/yiisoft/yii2)
-[![Total Downloads](https://poser.pugx.org/yiisoft/yii2/downloads.png)](https://packagist.org/packages/yiisoft/yii2)
-[![Build Status](https://secure.travis-ci.org/yiisoft/yii2.png)](http://travis-ci.org/yiisoft/yii2)
-[![Dependency Status](https://www.versioneye.com/php/yiisoft:yii2/dev-master/badge.png)](https://www.versioneye.com/php/yiisoft:yii2/dev-master)
-
-
-DIRECTORY STRUCTURE
--------------------
-
-      apps/                ready-to-use application templates
-          advanced/        a template suitable for building sophisticated Web applications
-          basic/           a template suitable for building simple Web applications
-          benchmark/       an application demonstrating the performance of Yii
-      build/               internally used build tools
-      docs/                documentation
-      extensions/          extensions
-      framework/           core framework code
-      tests/               tests of the core framework code
-
-
-REQUIREMENTS
+Installation
 ------------
 
-The minimum requirement by Yii is that your Web server supports PHP 5.4.
+The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
+
+Either run
+
+```
+php composer.phar require --prefer-dist yiisoft/yii2-codeception "*"
+```
+
+or add
+
+```json
+"yiisoft/yii2-codeception": "*"
+```
+
+to the require section of your composer.json.
 
 
-DOCUMENTATION
--------------
+Usage
+-----
 
-A draft of the [Definitive Guide](docs/guide/index.md) is available.
+When using codeception page-objects they have some similar code, this code was extracted and put into the `BasePage`
+class to reduce code duplication. Simply extend your page object from this class, like it is done in `yii2-app-basic` and
+`yii2-app-advanced` boilerplates.
 
-For 1.1 users, you may refer to [Upgrading from Yii 1.1](docs/guide/upgrade-from-v1.md)
-to have a general idea of what has changed in 2.0.
+For unit testing there is a `TestCase` class which holds some common features like application creation before each test
+and application destroy after each test. You can configure a mock application using this class.
+`TestCase` is extended from `Codeception\TestCase\Case` so all methods and assertions are available.
+You may use codeception modules and fire events in your test, just use methods:
 
+```php
+<?php
+#in your unit-test
+$this->getModule('CodeHelper'); #or some other module
+```
 
-HOW TO PARTICIPATE
-------------------
+You also can use all guy methods by accessing guy instance like:
 
-**Your participation to Yii 2 development is very welcome!**
+```php
+<?php
+$this->codeGuy->someMethodFromModule();
+```
 
-You may participate in the following ways:
+to fire event do this:
 
-* [Report issues](https://github.com/yiisoft/yii2/issues)
-* [Give us feedback or start a design discussion](http://www.yiiframework.com/forum/index.php/forum/42-design-discussions-for-yii-20/)
-* Fix issues, develop features, write/polish documentation
-    - Before you start, please adopt an existing issue (labelled with "ready for adoption") or start a new one to avoid duplicated efforts.
-    - Please submit a merge request after you finish development.
+```php
+<?php
+use Codeception\Event\TestEvent;
 
-In order to make it easier we've prepared [special `yii2-dev` Composer package](https://github.com/yiisoft/yii2/blob/master/docs/internals/getting-started.md).
+public function testSomething()
+{
+	$this->fire('myevent', new TestEvent($this));
+}
+```
+this event can be catched in modules and helpers. If your test is in the group, then event name will be followed by the groupname, 
+for example ```myevent.somegroup```.
 
+Execution of special tests methods is (for example on ```UserTest``` class):
+
+```
+tests\unit\models\UserTest::setUpBeforeClass();
+
+	tests\unit\models\UserTest::_before();
+
+		tests\unit\models\UserTest::setUp();
+
+			tests\unit\models\UserTest::testSomething();
+
+		tests\unit\models\UserTest::tearDown();
+
+	tests\unit\models\UserTest::_after();
+
+tests\unit\models\UserTest::tearDownAfterClass();
+```
+
+If you use special methods dont forget to call its parent.
+
+```php
+<?php
+
+SomeConsoleTest extends \yii\codeception\TestCase
+{
+	// this is the config file to load as application config
+	public static $applicationConfig = '@app/config/web.php';
+
+	// this defines the application class to use for mock applications
+	protected $applicationClass = 'yii\web\Application';
+}
+```
+
+The `$applicationConfig` property may be set for all tests in a `_bootstrap.php` file like this:
+
+```php
+<?php
+
+yii\codeception\TestCase::$applicationConfig = yii\helpers\ArrayHelper::merge(
+	require(__DIR__ . '/../../config/web.php'),
+	require(__DIR__ . '/../../config/codeception/unit.php')
+);
+```
+
+Don't forget that you have to include autoload and Yii class in the `_bootstrap.php` file.
+
+You also can reconfigure some components for tests, for this purpose there is a `$config` property in the `TestCase` class.
+
+```php
+<?php
+
+SomeOtherTest extends \yii\codeception\TestCase
+{
+	public $config = [
+		'components' => [
+			'mail' => [
+				'useFileTransport' => true,
+			],
+		]
+	];
+}
+```
+
+Because of Codeception buffers all output you can't make simple `var_dump()` in the TestCase, instead you need to use
+`Codeception\Util\Debug::debug()` function and then run test with `--debug` key, for example:
+
+```php
+<?php
+
+use Codeception\Util\Debug;
+
+SomeDebugTest extends \yii\codeception\TestCase
+{
+	public function testSmth()
+	{
+		Debug::debug('some string');
+		Debug::debug($someArray);
+		Debug::debug($someObject);
+	}
+
+}
+```
+
+Then run command `php codecept.phar run --debug unit/SomeDebugTest` and you will see in output:
+
+```html
+  some string
+
+  Array
+  (
+      [0] => 1
+      [1] => 2
+      [2] => 3
+      [3] => 4
+      [4] => 5
+  )
+  
+  yii\web\User Object
+  (
+      [identityClass] => app\models\User
+      [enableAutoLogin] => 
+      [loginUrl] => Array
+          (
+              [0] => site/login
+          )
+  
+      [identityCookie] => Array
+          (
+              [name] => _identity
+              [httpOnly] => 1
+          )
+  
+      [authTimeout] => 
+      [autoRenewCookie] => 1
+      [idVar] => __id
+      [authTimeoutVar] => __expire
+      [returnUrlVar] => __returnUrl
+      [_access:yii\web\User:private] => Array
+          (
+          )
+  
+      [_identity:yii\web\User:private] => 
+      [_events:yii\base\Component:private] => 
+      [_behaviors:yii\base\Component:private] => 
+  )
+
+```
+
+For further instructions refer to the testing section in the [Yii Definitive Guide](https://github.com/yiisoft/yii2/blob/master/docs/guide/testing.md).
