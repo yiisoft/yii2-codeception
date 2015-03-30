@@ -110,14 +110,14 @@ class TestCase extends Test
             if (!is_file($configFile)) {
                 throw new InvalidConfigException("The application configuration file does not exist: $config");
             }
+            Yii::$container = new Container();
             $config = require($configFile);
         }
         if (is_array($config)) {
             if (!isset($config['class'])) {
                 $config['class'] = 'yii\web\Application';
             }
-
-            Yii::$container = new Container();
+            
             return Yii::createObject($config);
         } else {
             throw new InvalidConfigException('Please provide a configuration array to mock up an application.');
