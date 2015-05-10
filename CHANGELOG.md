@@ -1,8 +1,13 @@
 Yii Framework 2 Codeception extension Change Log
 ================================================
 
-2.0.4 under development
+2.0.5 under development
 -----------------------
+
+
+
+2.0.4 May 10, 2015
+------------------
 
 - Enh #1: Allow to configure DI Container in configuration files (leandrogehlen)
 
