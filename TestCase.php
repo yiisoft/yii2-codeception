@@ -104,6 +104,9 @@ class TestCase extends Test
      */
     protected function mockApplication($config = null)
     {
+        if (isset(Yii::$app)) {
+            return;
+        }
         Yii::$container = new Container();
         $config = $config === null ? $this->appConfig : $config;
         if (is_string($config)) {

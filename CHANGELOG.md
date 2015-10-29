@@ -4,6 +4,7 @@ Yii Framework 2 Codeception extension Change Log
 2.0.5 under development
 -----------------------
 
+- Bug #7: Extension won't create new app instance if it already exists, for example was created in module (kaiserfedor)
 
 
 2.0.4 May 10, 2015
