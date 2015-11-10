@@ -131,6 +131,14 @@ class TestCase extends Test
      */
     protected function destroyApplication()
     {
+        if (\Yii::$app) {
+            if (\Yii::$app->has('session', true)) {
+                \Yii::$app->session->close();
+            }
+            if (\Yii::$app->has('db', true)) {
+                Yii::$app->db->close();
+            }
+        }
         Yii::$app = null;
         Yii::$container = new Container();
     }
