@@ -1,7 +1,11 @@
 Codeception Extension for Yii 2
 ===============================
 
-> Warning: this package is deprecated. All the features were intergrated into Codeception Yii2 module. Refer to [official documentation](http://codeception.com/for/yii).
+## This package is deprecated
+
+This package is deprecated. All the features were intergrated into Codeception Yii2 module. Refer to [official documentation](http://codeception.com/for/yii).
+
+---
 
 This extension provides [Codeception](http://codeception.com/) integration for the [Yii framework 2.0](http://www.yiiframework.com).
 
